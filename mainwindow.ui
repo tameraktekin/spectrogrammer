@@ -63,13 +63,6 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="sourceButton">
-       <property name="text">
-        <string>Source</string>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QPushButton" name="optionsButton">
        <property name="text">
         <string>Options</string>
