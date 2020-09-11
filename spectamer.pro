@@ -23,7 +23,9 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 CONFIG += qwt
 
-include(C:/Qwt-6.1.4/features/qwt.prf) # Note: This line solved qwt problem.
+LIBS += -F /Users/tameraktekin/Qt/qwt-6.1.5/lib/qwt.framework -framework qwt
+
+#include(/Users/tameraktekin/Qt/qwt-6.1.5/qwt.prf) # Note: This line solved qwt problem.
 
 SOURCES += \
         main.cpp \
