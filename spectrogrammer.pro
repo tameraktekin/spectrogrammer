@@ -6,7 +6,7 @@
 
 QT       += core gui widgets
 
-TARGET = spectamer
+TARGET = Spectrogrammer
 TEMPLATE = app
 
 # The following define makes your compiler emit warnings if you use
@@ -23,9 +23,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 CONFIG += qwt
 
-LIBS += -F /Users/tameraktekin/Qt/qwt-6.1.5/lib/qwt.framework -framework qwt
-
-#include(/Users/tameraktekin/Qt/qwt-6.1.5/qwt.prf) # Note: This line solved qwt problem.
+include(/Users/tameraktekin/Qt/qwt-6.1.5/qwt.prf) # Note: This line solved qwt problem.
 
 SOURCES += \
         main.cpp \
