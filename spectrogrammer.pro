@@ -27,13 +27,16 @@ include(/Users/tameraktekin/Qt/qwt-6.1.5/qwt.prf) # Note: This line solved qwt p
 
 SOURCES += \
         main.cpp \
-        mainwindow.cpp
+        mainwindow.cpp \
+        optionsmenu.cpp
 
 HEADERS += \
-        mainwindow.h
+        mainwindow.h \
+        optionsmenu.h
 
 FORMS += \
-        mainwindow.ui
+        mainwindow.ui \
+        optionsmenu.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

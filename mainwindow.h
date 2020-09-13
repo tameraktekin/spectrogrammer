@@ -15,8 +15,13 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+private slots:
+    void on_optionsButton_clicked();
+
 private:
     Ui::MainWindow *ui;
+    int fftLen;
+    QString windowType;
 };
 
 #endif // MAINWINDOW_H
