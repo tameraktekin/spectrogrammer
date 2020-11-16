@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui widgets
+QT       += core gui widgets multimedia charts
 
 TARGET = Spectrogrammer
 TEMPLATE = app
@@ -25,14 +25,19 @@ CONFIG += qwt
 
 include(/Users/tameraktekin/Qt/qwt-6.1.5/qwt.prf) # Note: This line solved qwt problem.
 
+LIBS += -framework CoreAudio
+LIBS += -framework AudioToolbox
+
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-        optionsmenu.cpp
+        optionsmenu.cpp \
+        xyseriesiodevice.cpp
 
 HEADERS += \
         mainwindow.h \
-        optionsmenu.h
+        optionsmenu.h \
+        xyseriesiodevice.h
 
 FORMS += \
         mainwindow.ui \
