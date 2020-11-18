@@ -15,7 +15,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->powerPlot->setAxisScale(0, -120, 0);
     ui->powerPlot->setTitle("Power (dB)");
 
-    for (int i = 0; i < 512; ++i) {
+    for (int i = 0; i < 10000; ++i) {
         displayList.push_back(0);
         displayListIdx.push_back(i);
     }
@@ -63,13 +63,15 @@ void MainWindow::convertDB(float &data)
 
 void MainWindow::processBuffer(const QAudioBuffer& buffer)
 {
-    float soundData = *(buffer.constData<float>());
+    const float *soundData = buffer.constData<float>();
+    float data;
 
-    convertDB(soundData);
-    qDebug() << soundData;
-    qDebug() << buffer.format();
-    displayList.push_back(soundData);
-    displayList.pop_front();
+    for (int i = 0; i < buffer.frameCount(); i++){
+        data = soundData[i];
+        convertDB(data);
+        displayList.push_back(data);
+        displayList.pop_front();
+    }
 
     QwtPointArrayData *data1=new QwtPointArrayData(displayListIdx, displayList);
 

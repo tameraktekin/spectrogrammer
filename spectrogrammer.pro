@@ -32,12 +32,10 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
         optionsmenu.cpp \
-        xyseriesiodevice.cpp
 
 HEADERS += \
         mainwindow.h \
         optionsmenu.h \
-        xyseriesiodevice.h
 
 FORMS += \
         mainwindow.ui \
