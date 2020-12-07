@@ -10,27 +10,43 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    ui->powerPlot->enableAxis(0, false);
-    ui->powerPlot->enableAxis(2, false);
-    ui->powerPlot->setAxisScale(0, -120, 0);
+    ui->powerPlot->enableAxis(0, true);
+    ui->powerPlot->enableAxis(2, true);
+    ui->powerPlot->setAxisScale(ui->powerPlot->yLeft, -120, 0);
+    ui->powerPlot->setAxisScale(ui->powerPlot->xBottom, 0, 100);
     ui->powerPlot->setTitle("Power (dB)");
+    ui->powerPlot->setAxisTitle(ui->powerPlot->xBottom, "Time (ms)");
 
     for (int i = 0; i < 10000; ++i) {
         displayList.push_back(0);
-        displayListIdx.push_back(i);
+        displayListIdx.push_back((i / sampleRate) * 1000);
     }
 
     curvePower->setPen( Qt::red, 1 ),
     curvePower->setRenderHint( QwtPlotItem::RenderAntialiased, true );
 
-    ui->fftPlot->enableAxis(0, false);
-    ui->fftPlot->enableAxis(2, false);
+    ui->fftPlot->enableAxis(0, true);
+    ui->fftPlot->enableAxis(2, true);
+    ui->fftPlot->setAxisScale(ui->fftPlot->yLeft, 0, 1);
+    ui->fftPlot->setAxisScale(ui->fftPlot->xBottom, 0, sampleRate / 2);
+    ui->fftPlot->setTitle("FFT Magnitude");
+    ui->fftPlot->setAxisTitle(ui->fftPlot->xBottom, "Frequency (Hz)");
 
-    ui->spectrogram->enableAxis(0, false);
-    ui->spectrogram->enableAxis(2, false);
+    curveFFT->setPen( Qt::red, 1 ),
+    curveFFT->setRenderHint( QwtPlotItem::RenderAntialiased, true );
 
-    ui->spectrogram3D->enableAxis(0, false);
-    ui->spectrogram3D->enableAxis(2, false);
+    ui->spectrogram->enableAxis(0, true);
+    ui->spectrogram->enableAxis(2, true);
+
+    ui->spectrogram3D->enableAxis(0, true);
+    ui->spectrogram3D->enableAxis(2, true);
+
+    fftLen = 1024;
+    windowType = "Rectangular";
+
+    arrangeFFTParams();
+
+    connect(this, SIGNAL(fftFilled()), this, SLOT(updateFFTPlot()));
 
     QAudioProbe *probe;
     QAudioRecorder * audioRecorder = new QAudioRecorder(this);
@@ -51,9 +67,10 @@ void MainWindow::on_optionsButton_clicked()
     optionsMenu.setModal(true);
     optionsMenu.exec();
 
-    this->fftLen = optionsMenu.getFftLen();
-    this->windowType = optionsMenu.getWindowType();
+    fftLen = optionsMenu.getFftLen();
+    windowType = optionsMenu.getWindowType();
 
+    arrangeFFTParams();
 }
 
 void MainWindow::convertDB(float &data)
@@ -68,6 +85,16 @@ void MainWindow::processBuffer(const QAudioBuffer& buffer)
 
     for (int i = 0; i < buffer.frameCount(); i++){
         data = soundData[i];
+
+        fftList.push_back(data);
+        fftList.pop_front();
+
+        fftCount++;
+        if (fftCount == fftLen){
+            emit fftFilled();
+            fftCount = 0;
+        }
+
         convertDB(data);
         displayList.push_back(data);
         displayList.pop_front();
@@ -76,8 +103,44 @@ void MainWindow::processBuffer(const QAudioBuffer& buffer)
     QwtPointArrayData *data1=new QwtPointArrayData(displayListIdx, displayList);
 
     curvePower->setSamples(data1);
-    curvePower->attach(ui->powerPlot );
+    curvePower->attach(ui->powerPlot);
 
     ui->powerPlot->replot();
     ui->powerPlot->show();
+}
+
+void MainWindow::arrangeFFTParams(){
+    fftList.clear();
+
+    fftListIdx.clear();
+    fftMag.clear();
+
+    for (int i = 0; i < fftLen; ++i) {
+        fftList.push_back(0);
+        if (i < fftLen / 2) fftListIdx.push_back((i * sampleRate) / fftLen);
+        fftMag.push_back(0);
+    }
+}
+
+void MainWindow::updateFFTPlot(){
+    fftw_plan p;
+    fftw_complex *out;
+
+    out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * fftLen);
+    p = fftw_plan_dft_r2c_1d(fftLen, fftList.data(), out, FFTW_ESTIMATE);
+
+    fftw_execute(p);
+
+    for (int i = 0; i < fftLen / 2; i++){
+        fftMag.push_back(sqrt(out[i][0] * out[i][0] + out[i][1] * out[i][1]));
+        fftMag.pop_front();
+    }
+
+    QwtPointArrayData *data1=new QwtPointArrayData(fftListIdx, fftMag);
+
+    curveFFT->setSamples(data1);
+    curveFFT->attach(ui->fftPlot);
+
+    ui->fftPlot->replot();
+    ui->fftPlot->show();
 }

@@ -12,6 +12,7 @@
 #include <QAudioRecorder>
 #include <QAudioProbe>
 #include <math.h>
+#include <fftw3.h>
 
 
 namespace Ui {
@@ -29,15 +30,30 @@ public:
 private slots:
     void on_optionsButton_clicked();
     void processBuffer(const QAudioBuffer& buffer);
+    void updateFFTPlot();
+
+signals:
+    void fftFilled();
 
 private:
     Ui::MainWindow *ui;
-    int fftLen;
-    QString windowType;
+
     QVector<double> displayList;
     QVector<double> displayListIdx;
     QwtPlotCurve *curvePower = new QwtPlotCurve();
+
+    double sampleRate = 48000;
+    int fftLen;
+    int fftCount = 0;
+
+    QString windowType;
+    QVector<double> fftList;
+    QVector<double> fftListIdx;
+    QVector<double> fftMag;
+
+    QwtPlotCurve *curveFFT = new QwtPlotCurve();
     void convertDB(float &data);
+    void arrangeFFTParams();
 };
 
 #endif // MAINWINDOW_H

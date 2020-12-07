@@ -25,8 +25,11 @@ CONFIG += qwt
 
 include(/Users/tameraktekin/Qt/qwt-6.1.5/qwt.prf) # Note: This line solved qwt problem.
 
+INCLUDEPATH += "/usr/local/include"
+
 LIBS += -framework CoreAudio
 LIBS += -framework AudioToolbox
+LIBS += -L"/usr/local/lib" -lfftw3 -lfftw3f
 
 SOURCES += \
         main.cpp \
