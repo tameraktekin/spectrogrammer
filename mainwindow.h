@@ -13,6 +13,7 @@
 #include <QAudioProbe>
 #include <math.h>
 #include <fftw3.h>
+#include <QUrl>
 
 
 namespace Ui {
@@ -42,11 +43,13 @@ private:
     QVector<double> displayListIdx;
     QwtPlotCurve *curvePower = new QwtPlotCurve();
 
+    void arrangePlots();
+
     double sampleRate = 48000;
-    int fftLen;
+    int fftLen = 1024;
     int fftCount = 0;
 
-    QString windowType;
+    QString windowType = "Rectangular";
     QVector<double> fftList;
     QVector<double> fftListIdx;
     QVector<double> fftMag;

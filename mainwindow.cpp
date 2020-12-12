@@ -10,17 +10,38 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    for (int i = 0; i < 10000; ++i) {
+        displayList.push_back(0);
+        displayListIdx.push_back((i / sampleRate) * 1000);
+    }
+
+    arrangePlots();
+    arrangeFFTParams();
+
+    connect(this, SIGNAL(fftFilled()), this, SLOT(updateFFTPlot()));
+
+    QAudioProbe *probe;
+    QAudioRecorder * audioRecorder = new QAudioRecorder(this);
+            probe = new QAudioProbe;
+            connect(probe, SIGNAL(audioBufferProbed(QAudioBuffer)), this, SLOT(processBuffer(QAudioBuffer)));
+            probe->setSource(audioRecorder);
+            audioRecorder->setOutputLocation(QUrl::fromLocalFile("tmp"));
+            audioRecorder->record();
+}
+
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
+
+void MainWindow::arrangePlots()
+{
     ui->powerPlot->enableAxis(0, true);
     ui->powerPlot->enableAxis(2, true);
     ui->powerPlot->setAxisScale(ui->powerPlot->yLeft, -120, 0);
     ui->powerPlot->setAxisScale(ui->powerPlot->xBottom, 0, 100);
     ui->powerPlot->setTitle("Power (dB)");
     ui->powerPlot->setAxisTitle(ui->powerPlot->xBottom, "Time (ms)");
-
-    for (int i = 0; i < 10000; ++i) {
-        displayList.push_back(0);
-        displayListIdx.push_back((i / sampleRate) * 1000);
-    }
 
     curvePower->setPen( Qt::red, 1 ),
     curvePower->setRenderHint( QwtPlotItem::RenderAntialiased, true );
@@ -40,25 +61,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->spectrogram3D->enableAxis(0, true);
     ui->spectrogram3D->enableAxis(2, true);
-
-    fftLen = 1024;
-    windowType = "Rectangular";
-
-    arrangeFFTParams();
-
-    connect(this, SIGNAL(fftFilled()), this, SLOT(updateFFTPlot()));
-
-    QAudioProbe *probe;
-    QAudioRecorder * audioRecorder = new QAudioRecorder(this);
-            probe = new QAudioProbe;
-            connect(probe, SIGNAL(audioBufferProbed(QAudioBuffer)), this, SLOT(processBuffer(QAudioBuffer)));
-            probe->setSource(audioRecorder);
-            audioRecorder->record();
-}
-
-MainWindow::~MainWindow()
-{
-    delete ui;
 }
 
 void MainWindow::on_optionsButton_clicked()
