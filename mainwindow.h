@@ -14,6 +14,8 @@
 #include <math.h>
 #include <fftw3.h>
 #include <QUrl>
+#include "qwt_plot_spectrogram.h"
+#include "qwt_matrix_raster_data.h"
 
 
 namespace Ui {
@@ -48,15 +50,20 @@ private:
     double sampleRate = 48000;
     int fftLen = 1024;
     int fftCount = 0;
+    int stftCount = 0;
 
     QString windowType = "Rectangular";
     QVector<double> fftList;
     QVector<double> fftListIdx;
     QVector<double> fftMag;
+    QVector<double> stftMag;
+    QwtMatrixRasterData *dataSpec = new QwtMatrixRasterData();
 
     QwtPlotCurve *curveFFT = new QwtPlotCurve();
     void convertDB(float &data);
     void arrangeFFTParams();
+
+    QwtPlotSpectrogram *spec;
 };
 
 #endif // MAINWINDOW_H

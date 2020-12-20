@@ -56,6 +56,8 @@ void MainWindow::arrangePlots()
     curveFFT->setPen( Qt::red, 1 ),
     curveFFT->setRenderHint( QwtPlotItem::RenderAntialiased, true );
 
+    spec = new QwtPlotSpectrogram();
+
     ui->spectrogram->enableAxis(0, true);
     ui->spectrogram->enableAxis(2, true);
 
@@ -102,7 +104,7 @@ void MainWindow::processBuffer(const QAudioBuffer& buffer)
         displayList.pop_front();
     }
 
-    QwtPointArrayData *data1=new QwtPointArrayData(displayListIdx, displayList);
+    QwtPointArrayData *data1 = new QwtPointArrayData(displayListIdx, displayList);
 
     curvePower->setSamples(data1);
     curvePower->attach(ui->powerPlot);
@@ -122,11 +124,16 @@ void MainWindow::arrangeFFTParams(){
         if (i < fftLen / 2) fftListIdx.push_back((i * sampleRate) / fftLen);
         fftMag.push_back(0);
     }
+
+    for (int i = 0; i < (8 * fftLen); i++)
+        stftMag.push_back(0);
+    dataSpec->setValueMatrix(stftMag, 16);
 }
 
 void MainWindow::updateFFTPlot(){
     fftw_plan p;
     fftw_complex *out;
+    double res;
 
     out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * fftLen);
     p = fftw_plan_dft_r2c_1d(fftLen, fftList.data(), out, FFTW_ESTIMATE);
@@ -134,14 +141,36 @@ void MainWindow::updateFFTPlot(){
     fftw_execute(p);
 
     for (int i = 0; i < fftLen / 2; i++){
-        fftMag.push_back(sqrt(out[i][0] * out[i][0] + out[i][1] * out[i][1]));
+        res = sqrt(out[i][0] * out[i][0] + out[i][1] * out[i][1]);
+        fftMag.push_back(res);
         fftMag.pop_front();
+
+        dataSpec->setValue(i, (stftCount / (fftLen / 2)), res);
+        stftCount++;
+
+        if (stftCount >= (8 * fftLen)){
+
+            dataSpec->setInterval(Qt::XAxis, QwtInterval( 0, 16));
+            dataSpec->setInterval(Qt::YAxis, QwtInterval( 0, (sampleRate / 2) ));
+            dataSpec->setInterval(Qt::ZAxis, QwtInterval( 0, 2 ));
+            qDebug() << dataSpec->numRows() << dataSpec->numColumns() << stftMag.length();
+
+            spec->setData(dataSpec);
+            spec->attach(ui->spectrogram);
+
+            ui->spectrogram->replot();
+            ui->spectrogram->show();
+
+            stftCount = 0;
+        }
     }
 
-    QwtPointArrayData *data1=new QwtPointArrayData(fftListIdx, fftMag);
+    QwtPointArrayData *data1 = new QwtPointArrayData(fftListIdx, fftMag);
 
     curveFFT->setSamples(data1);
     curveFFT->attach(ui->fftPlot);
+
+
 
     ui->fftPlot->replot();
     ui->fftPlot->show();
