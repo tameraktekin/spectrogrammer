@@ -60,9 +60,7 @@ void MainWindow::arrangePlots()
 
     ui->spectrogram->enableAxis(0, true);
     ui->spectrogram->enableAxis(2, true);
-
-    ui->spectrogram3D->enableAxis(0, true);
-    ui->spectrogram3D->enableAxis(2, true);
+    ui->spectrogram->setAxisScale(ui->spectrogram->xBottom, 0, (8 * fftLen) / sampleRate);
 }
 
 void MainWindow::on_optionsButton_clicked()
@@ -150,10 +148,9 @@ void MainWindow::updateFFTPlot(){
 
         if (stftCount >= (8 * fftLen)){
 
-            dataSpec->setInterval(Qt::XAxis, QwtInterval( 0, 16));
+            dataSpec->setInterval(Qt::XAxis, QwtInterval( 0, (8 * fftLen) / sampleRate));
             dataSpec->setInterval(Qt::YAxis, QwtInterval( 0, (sampleRate / 2) ));
             dataSpec->setInterval(Qt::ZAxis, QwtInterval( 0, 2 ));
-            qDebug() << dataSpec->numRows() << dataSpec->numColumns() << stftMag.length();
 
             spec->setData(dataSpec);
             spec->attach(ui->spectrogram);
