@@ -16,6 +16,7 @@
 #include <QUrl>
 #include "qwt_plot_spectrogram.h"
 #include "qwt_matrix_raster_data.h"
+#include <qwt_color_map.h>
 
 
 namespace Ui {
@@ -34,9 +35,11 @@ private slots:
     void on_optionsButton_clicked();
     void processBuffer(const QAudioBuffer& buffer);
     void updateFFTPlot();
+    void updateSTFTPlot();
 
 signals:
     void fftFilled();
+    void stftFilled();
 
 private:
     Ui::MainWindow *ui;
@@ -44,6 +47,7 @@ private:
     QVector<double> displayList;
     QVector<double> displayListIdx;
     QwtPlotCurve *curvePower = new QwtPlotCurve();
+    QwtLinearColorMap *colorMap;
 
     void arrangePlots();
 
@@ -57,6 +61,7 @@ private:
     QVector<double> fftListIdx;
     QVector<double> fftMag;
     QVector<double> stftMag;
+    QVector<double> stftList;
     QwtMatrixRasterData *dataSpec = new QwtMatrixRasterData();
 
     QwtPlotCurve *curveFFT = new QwtPlotCurve();

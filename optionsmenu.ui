@@ -62,17 +62,7 @@
        </item>
        <item>
         <property name="text">
-         <string>Triangular</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Gaussian</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Hamming</string>
+         <string>Hann</string>
         </property>
        </item>
       </widget>

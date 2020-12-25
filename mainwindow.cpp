@@ -19,6 +19,7 @@ MainWindow::MainWindow(QWidget *parent) :
     arrangeFFTParams();
 
     connect(this, SIGNAL(fftFilled()), this, SLOT(updateFFTPlot()));
+    connect(this, SIGNAL(stftFilled()), this, SLOT(updateSTFTPlot()));
 
     QAudioProbe *probe;
     QAudioRecorder * audioRecorder = new QAudioRecorder(this);
@@ -60,9 +61,16 @@ void MainWindow::arrangePlots()
 
     ui->spectrogram->enableAxis(0, true);
     ui->spectrogram->enableAxis(2, true);
-    ui->spectrogram->setAxisScale(ui->spectrogram->xBottom, 0, 100 * (8 * fftLen) / sampleRate);
+    ui->spectrogram->setAxisScale(ui->spectrogram->xBottom, 0, 1000 * (8 * fftLen) / sampleRate);
     ui->spectrogram->setAxisTitle(ui->spectrogram->yLeft, "Frequency (Hz)");
     ui->spectrogram->setAxisTitle(ui->spectrogram->xBottom, "Time (ms)");
+
+    colorMap = new QwtLinearColorMap(Qt::darkCyan, Qt::red);
+    colorMap->addColorStop(0.1, Qt::cyan);
+    colorMap->addColorStop(0.6, Qt::green);
+    colorMap->addColorStop(0.95, Qt::yellow);
+
+    spec->setColorMap(colorMap);
 }
 
 void MainWindow::on_optionsButton_clicked()
@@ -99,6 +107,12 @@ void MainWindow::processBuffer(const QAudioBuffer& buffer)
             fftCount = 0;
         }
 
+        stftList.push_back(data);
+        stftCount++;
+        if (stftCount == 8 * fftLen){
+            emit stftFilled();
+            stftCount = 0;
+        }
         convertDB(data);
         displayList.push_back(data);
         displayList.pop_front();
@@ -118,6 +132,7 @@ void MainWindow::arrangeFFTParams(){
 
     fftListIdx.clear();
     fftMag.clear();
+    stftMag.clear();
 
     for (int i = 0; i < fftLen; ++i) {
         fftList.push_back(0);
@@ -144,24 +159,6 @@ void MainWindow::updateFFTPlot(){
         res = sqrt(out[i][0] * out[i][0] + out[i][1] * out[i][1]);
         fftMag.push_back(res);
         fftMag.pop_front();
-
-        dataSpec->setValue(i, (stftCount / (fftLen / 2)), res);
-        stftCount++;
-
-        if (stftCount >= (8 * fftLen)){
-
-            dataSpec->setInterval(Qt::XAxis, QwtInterval( 0, 100 * (8 * fftLen) / sampleRate));
-            dataSpec->setInterval(Qt::YAxis, QwtInterval( 0, (sampleRate / 2) ));
-            dataSpec->setInterval(Qt::ZAxis, QwtInterval( 0, 2 ));
-
-            spec->setData(dataSpec);
-            spec->attach(ui->spectrogram);
-
-            ui->spectrogram->replot();
-            ui->spectrogram->show();
-
-            stftCount = 0;
-        }
     }
 
     QwtPointArrayData *data1 = new QwtPointArrayData(fftListIdx, fftMag);
@@ -169,8 +166,53 @@ void MainWindow::updateFFTPlot(){
     curveFFT->setSamples(data1);
     curveFFT->attach(ui->fftPlot);
 
-
-
     ui->fftPlot->replot();
     ui->fftPlot->show();
+}
+
+void MainWindow::updateSTFTPlot(){
+    fftw_plan p;
+    fftw_complex *out;
+    double res;
+    int count = 0;
+
+    out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * fftLen);
+
+    for (int j = 0; j < stftList.length(); j = j + (fftLen / 2 )){
+        double stftBlock[fftLen];
+
+        for (int k = 0; k < fftLen; k++){
+            stftBlock[k] = stftList[k + j];
+
+            if (windowType == "Hann"){
+                stftBlock[k] = stftBlock[k] * 0.5 * (1 - cos(2 * M_PI * k / fftLen));
+            }
+        }
+
+        p = fftw_plan_dft_r2c_1d(fftLen, stftBlock, out, FFTW_ESTIMATE);
+
+        fftw_execute(p);
+
+        for (int i = 0; i < fftLen / 2; i++){
+            res = sqrt(out[i][0] * out[i][0] + out[i][1] * out[i][1]);
+
+            dataSpec->setValue(i, (count / (fftLen / 2)), res);
+            count++;
+
+            if (count >= (8 * fftLen)){
+
+                dataSpec->setInterval(Qt::XAxis, QwtInterval( 0, 1000 * (8 * fftLen) / sampleRate));
+                dataSpec->setInterval(Qt::YAxis, QwtInterval( 0, (sampleRate / 2) ));
+                dataSpec->setInterval(Qt::ZAxis, QwtInterval( 0, 2 ));
+
+                spec->setData(dataSpec);
+                spec->attach(ui->spectrogram);
+
+                ui->spectrogram->replot();
+                ui->spectrogram->show();
+
+                count = 0;
+            }
+        }
+    }
 }
