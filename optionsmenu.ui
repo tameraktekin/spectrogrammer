@@ -21,6 +21,9 @@
        <property name="currentText">
         <string>Choose FFT Length</string>
        </property>
+       <property name="placeholderText">
+        <string/>
+       </property>
        <item>
         <property name="text">
          <string>Choose FFT Length</string>

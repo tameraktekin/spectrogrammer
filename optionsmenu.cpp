@@ -31,7 +31,7 @@ QString OptionsMenu::getWindowType()
 
 void OptionsMenu::on_fftLenBox_activated(const QString &arg1)
 {
-   this->fftLen = arg1.toInt();
+    this->fftLen = arg1.toInt();
 }
 
 void OptionsMenu::on_comboBox_2_activated(const QString &arg1)

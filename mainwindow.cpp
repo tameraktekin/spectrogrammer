@@ -61,7 +61,7 @@ void MainWindow::arrangePlots()
 
     ui->spectrogram->enableAxis(0, true);
     ui->spectrogram->enableAxis(2, true);
-    ui->spectrogram->setAxisScale(ui->spectrogram->xBottom, 0, 1000 * (8 * fftLen) / sampleRate);
+    ui->spectrogram->setAxisScale(ui->spectrogram->xBottom, 0, 1000 * (16 * fftLen) / sampleRate);
     ui->spectrogram->setTitle("STFT");
     ui->spectrogram->setAxisTitle(ui->spectrogram->yLeft, "Frequency (Hz)");
     ui->spectrogram->setAxisTitle(ui->spectrogram->xBottom, "Time (ms)");
@@ -213,6 +213,7 @@ void MainWindow::updateSTFTPlot(){
                 ui->spectrogram->show();
 
                 count = 0;
+                stftList.clear();
             }
         }
     }
