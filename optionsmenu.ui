@@ -28,22 +28,22 @@
        </item>
        <item>
         <property name="text">
+         <string>128</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>256</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>512</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
          <string>1024</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>2048</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>4096</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>8192</string>
         </property>
        </item>
       </widget>

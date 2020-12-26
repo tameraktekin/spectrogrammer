@@ -62,6 +62,7 @@ void MainWindow::arrangePlots()
     ui->spectrogram->enableAxis(0, true);
     ui->spectrogram->enableAxis(2, true);
     ui->spectrogram->setAxisScale(ui->spectrogram->xBottom, 0, 1000 * (8 * fftLen) / sampleRate);
+    ui->spectrogram->setTitle("STFT");
     ui->spectrogram->setAxisTitle(ui->spectrogram->yLeft, "Frequency (Hz)");
     ui->spectrogram->setAxisTitle(ui->spectrogram->xBottom, "Time (ms)");
 
@@ -71,6 +72,10 @@ void MainWindow::arrangePlots()
     colorMap->addColorStop(0.95, Qt::yellow);
 
     spec->setColorMap(colorMap);
+
+    dataSpec->setInterval(Qt::XAxis, QwtInterval( 0, 1000 * (16 * fftLen) / sampleRate));
+    dataSpec->setInterval(Qt::YAxis, QwtInterval( 0, (sampleRate / 2) ));
+    dataSpec->setInterval(Qt::ZAxis, QwtInterval( 0, 2 ));
 }
 
 void MainWindow::on_optionsButton_clicked()
@@ -118,9 +123,9 @@ void MainWindow::processBuffer(const QAudioBuffer& buffer)
         displayList.pop_front();
     }
 
-    QwtPointArrayData *data1 = new QwtPointArrayData(displayListIdx, displayList);
+    dataPower = new QwtPointArrayData(displayListIdx, displayList);
 
-    curvePower->setSamples(data1);
+    curvePower->setSamples(dataPower);
     curvePower->attach(ui->powerPlot);
 
     ui->powerPlot->replot();
@@ -140,9 +145,9 @@ void MainWindow::arrangeFFTParams(){
         fftMag.push_back(0);
     }
 
-    for (int i = 0; i < (8 * fftLen); i++)
+    for (int i = 0; i < (16 * fftLen); i++)
         stftMag.push_back(0);
-    dataSpec->setValueMatrix(stftMag, 16);
+    dataSpec->setValueMatrix(stftMag, 32);
 }
 
 void MainWindow::updateFFTPlot(){
@@ -161,13 +166,15 @@ void MainWindow::updateFFTPlot(){
         fftMag.pop_front();
     }
 
-    QwtPointArrayData *data1 = new QwtPointArrayData(fftListIdx, fftMag);
+    dataFFT = new QwtPointArrayData(fftListIdx, fftMag);
 
-    curveFFT->setSamples(data1);
+    curveFFT->setSamples(dataFFT);
     curveFFT->attach(ui->fftPlot);
 
     ui->fftPlot->replot();
     ui->fftPlot->show();
+
+    fftw_destroy_plan(p);
 }
 
 void MainWindow::updateSTFTPlot(){
@@ -175,12 +182,11 @@ void MainWindow::updateSTFTPlot(){
     fftw_complex *out;
     double res;
     int count = 0;
+    double stftBlock[fftLen];
 
     out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * fftLen);
 
     for (int j = 0; j < stftList.length(); j = j + (fftLen / 2 )){
-        double stftBlock[fftLen];
-
         for (int k = 0; k < fftLen; k++){
             stftBlock[k] = stftList[k + j];
 
@@ -199,12 +205,7 @@ void MainWindow::updateSTFTPlot(){
             dataSpec->setValue(i, (count / (fftLen / 2)), res);
             count++;
 
-            if (count >= (8 * fftLen)){
-
-                dataSpec->setInterval(Qt::XAxis, QwtInterval( 0, 1000 * (8 * fftLen) / sampleRate));
-                dataSpec->setInterval(Qt::YAxis, QwtInterval( 0, (sampleRate / 2) ));
-                dataSpec->setInterval(Qt::ZAxis, QwtInterval( 0, 2 ));
-
+            if (count >= (32 * fftLen)){
                 spec->setData(dataSpec);
                 spec->attach(ui->spectrogram);
 
@@ -215,4 +216,5 @@ void MainWindow::updateSTFTPlot(){
             }
         }
     }
+    fftw_destroy_plan(p);
 }

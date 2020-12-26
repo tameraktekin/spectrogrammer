@@ -52,7 +52,7 @@ private:
     void arrangePlots();
 
     double sampleRate = 48000;
-    int fftLen = 1024;
+    int fftLen = 128;
     int fftCount = 0;
     int stftCount = 0;
 
@@ -63,6 +63,8 @@ private:
     QVector<double> stftMag;
     QVector<double> stftList;
     QwtMatrixRasterData *dataSpec = new QwtMatrixRasterData();
+    QwtPointArrayData *dataPower;
+    QwtPointArrayData *dataFFT;
 
     QwtPlotCurve *curveFFT = new QwtPlotCurve();
     void convertDB(float &data);
